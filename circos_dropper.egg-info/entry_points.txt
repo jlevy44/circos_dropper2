@@ -1,0 +1,3 @@
+
+        [console_scripts]
+        circos_dropper=circos_dropper:circosdrop

@@ -1,0 +1,6 @@
+numpy
+pandas
+pysam==0.10.0
+pybedtools
+pyfaidx
+pathos

@@ -259,13 +259,13 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'], max_content_width=90
 
 @click.group(context_settings=CONTEXT_SETTINGS)
 @click.version_option(version='0.2')
-def joshuatree():
+def circosdrop():
     pass
 
 ####################
 #### RUN CIRCOS ####
 
-@joshuatree.command()
+@circosdrop.command()
 @click.option('-fi', '--fasta_path', default = './fasta_path/', show_default=True, help='Fasta path containing all of the input genomes. Genome naming must conform to xxx_[protID]_xxx.[fa/fasta].', type=click.Path(exists=False))
 @click.option('-gff', '--gff_path', default = './gff_path/', show_default=True, help='Gff path containing all of the gff/gff3 files. Gff naming must conform to: xxx.[protID].[gff/gff3].', type=click.Path(exists=False))
 @click.option('-s', '--synteny_path', default = './synteny_path/', show_default=True, help='Path containing synteny files, .unout or .anchors files. *.unout must conform to following pattern: [PAC4GC/PAC2_0].[q_protID]-[PAC4GC/PAC2_0].[s_protID]_5.unout; *.anchors must conform to: [q_protID].[s_protID].[*].anchors. Not neccessary to add files to this path, synteny will be generated if no specification.', type=click.Path(exists=False))
@@ -341,7 +341,7 @@ def circos_dropper(fasta_path, gff_path, synteny_path, bed_path, circos_inputs, 
         circos_obj.generate_config(ticks = circos_inputs+'/txticks.conf', ideogram = circos_inputs+'/txideogram.conf', links_and_rules = circos_inputs+'/linksAndrules.conf', config=circos_inputs+'/circos.conf')
         circos_obj.run_circos(circos_outputs+'/')
 
-@joshuatree.command()
+@circosdrop.command()
 @click.option('-fi', '--fasta_path', default = './fasta_path/', show_default=True, help='Fasta path containing all of the input genomes. Genome naming must conform to xxx_[protID]_xxx.[fa/fasta].', type=click.Path(exists=False))
 @click.option('-gff', '--gff_path', default = './gff_path/', show_default=True, help='Gff path containing all of the gff/gff3 files. Gff naming must conform to: xxx.[protID].[gff/gff3].', type=click.Path(exists=False))
 @click.option('-bed', '--bed_path', default = './bed_path/', show_default=True, help='Bed path containing all of the bed files.', type=click.Path(exists=False))
@@ -355,32 +355,32 @@ def generate_genomes(fasta_path,gff_path, bed_path, work_dir, gene_info):
     gff_files = {protID:gff for protID,gff in gff_files.items() if protID in intersect_keys}
     genomes = {}
     for protID in intersect_keys:
-        genomes[protID] = Genome(fasta_files[protID],os.path.abspath(bed_path+'/'+protID+'.bed'),protID,gff_files[protID],gene_info)
+        genomes[protID] = Genome(fasta_files[protID],bed_path+'/'+protID+'.bed',protID,gff_files[protID],gene_info)
     for genome in genomes:
         pickle.dump(genomes[genome],open('%s%s.p'%(work_dir,protID),'wb'))
 
-@joshuatree.command()
+@circosdrop.command()
 @click.option('-i', '--genome_pickle', help='Input genome pickle.', type=click.Path(exists=False))
 def generate_cds(genome_pickle):
     pickle.load(open(genome_pickle,'rb')).extract_CDS()
 
-@joshuatree.command()
+@circosdrop.command()
 @click.option('-i', '--genome_pickle', help='Input genome pickle.', type=click.Path(exists=False))
 @click.option('-ci', '--circos_inputs', default = './circos_inputs/', show_default=True, help='Path containing all of circos inputs and configuration files.', type=click.Path(exists=False))
 def generate_karyotype(genome_pickle, circos_inputs):
     genome = pickle.load(open(genome_pickle,'rb'))
     genome.export_karyotype(circos_inputs+'/'+genome.protID+'.karyotype.txt')
 
-@joshuatree.command()
-@click.argument('g','--genomes',help='Genome pickles, space delimited.',nargs=-1)
+@circosdrop.command()
 @click.option('-w', '--work_dir', default = './', show_default=True, help='Work directory.', type=click.Path(exists=False))
-def pair_genomes(genomes,work_dir):
+@click.option('-g','--genomes',help='Genome pickles, space delimited.',multiple=True)
+def pair_genomes(work_dir,genomes):
     genomes = {genome.protID:genome for genome in pickle.load(open(genomes,'rb'))}
     pairs = set(list(combinations(genomes.keys(), r=2)))
     for pair in pairs:
         pickle.dump((genomes[pair[0]],genomes[pair[1]]),open('%s%s.%s.p' %(work_dir,pair[0],pair[1]),'wb'))
 
-@joshuatree.command()
+@circosdrop.command()
 @click.option('-g', '--genome_pair', help='Pair of input genome pickles.', type=click.Path(exists=False))
 @click.option('-l', '--loci_threshold', default= 4, show_default=True, help='Minimum number of genes in a syntenic block in order to include the block.')
 @click.option('-s', '--synteny_path', default = './synteny_path/', show_default=True, help='Path containing synteny files, .unout or .anchors files. *.unout must conform to following pattern: [PAC4GC/PAC2_0].[q_protID]-[PAC4GC/PAC2_0].[s_protID]_5.unout; *.anchors must conform to: [q_protID].[s_protID].[*].anchors. Not neccessary to add files to this path, synteny will be generated if no specification.', type=click.Path(exists=False))
@@ -391,7 +391,7 @@ def generate_synteny(genome_pair, loci_threshold, synteny_path, work_dir):
     pairwise_synteny.generate_synteny_structure(synteny_path)
     pickle.dump(pairwise_synteny, open('%s%s.%s.p' % (work_dir, pairwise_synteny.q_genome.protID, pairwise_synteny.s_genome.protID), 'wb'))
 
-@joshuatree.command()
+@circosdrop.command()
 @click.option('-p', '--pairwise_pickle', help='Input genome pickle 1.', type=click.Path(exists=False))
 @click.option('-ci', '--circos_inputs', default = './circos_inputs/', show_default=True, help='Path containing all of circos inputs and configuration files.', type=click.Path(exists=False))
 @click.option('-co', '--circos_outputs', default = './circos_outputs/', show_default=True, help='Path containing all of circos output images.', type=click.Path(exists=False))
@@ -403,3 +403,10 @@ def display_circos(pairwise_pickle,circos_inputs, circos_outputs):
                                links_and_rules=circos_inputs + '/linksAndrules.conf',
                                config=circos_inputs + '/circos.conf')
     circos_obj.run_circos(circos_outputs + '/')
+
+
+
+#### RUN CLI ####
+
+if __name__ == '__main__':
+    circosdrop()

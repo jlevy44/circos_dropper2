@@ -1,0 +1,8 @@
+circos_dropper.py
+setup.py
+circos_dropper.egg-info/PKG-INFO
+circos_dropper.egg-info/SOURCES.txt
+circos_dropper.egg-info/dependency_links.txt
+circos_dropper.egg-info/entry_points.txt
+circos_dropper.egg-info/requires.txt
+circos_dropper.egg-info/top_level.txt
